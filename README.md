@@ -71,6 +71,25 @@
  - 每一条命令根据需要，可以换行和缩近
  - 注释。单行注释#  多行注释   /* */
 
+#### MySQL入门
+
+ - 初始化myemployee
+
+   ```sql
+   (```)
+   	#地区表
+   CREATE TABLE `locations` (
+     `location_id` int(11) NOT NULL AUTO_INCREMENT,
+     `street_address` varchar(40) DEFAULT NULL,
+     `postal_code` varchar(12) DEFAULT NULL,
+     `city` varchar(30) DEFAULT NULL,
+     `state_province` varchar(25) DEFAULT NULL,
+     `country_id` varchar(2) DEFAULT NULL,
+     PRIMARY KEY (`location_id`)
+   ) ENGINE=InnoDB AUTO_INCREMENT=3201 DEFAULT CHARSET=utf8;
+   (```)
+   ```
+
 
 
 ​	
