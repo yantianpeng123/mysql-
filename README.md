@@ -79,23 +79,23 @@
    (```)
    #地区表
    CREATE TABLE `locations` (
-     `location_id` int(11) NOT NULL AUTO_INCREMENT,
-     `street_address` varchar(40) DEFAULT NULL,
-     `postal_code` varchar(12) DEFAULT NULL,
-     `city` varchar(30) DEFAULT NULL,
-     `state_province` varchar(25) DEFAULT NULL,
-     `country_id` varchar(2) DEFAULT NULL,
+     `location_id` int(11) NOT NULL AUTO_INCREMENT, #位置编号
+     `street_address` varchar(40) DEFAULT NULL,#街道
+     `postal_code` varchar(12) DEFAULT NULL,#邮编
+     `city` varchar(30) DEFAULT NULL,#城市
+     `state_province` varchar(25) DEFAULT NULL,#省
+     `country_id` varchar(2) DEFAULT NULL,#区县
      PRIMARY KEY (`location_id`)
    ) ENGINE=InnoDB AUTO_INCREMENT=3201 DEFAULT CHARSET=utf8;
    
    insert  into `locations`(`location_id`,`street_address`,`postal_code`,`city`,`state_province`,`country_id`) values (1000,'1297 Via Cola di Rie','00989','Roma',NULL,'IT'),(1100,'93091 Calle della Testa','10934','Venice',NULL,'IT'),(1200,'2017 Shinjuku-ku','1689','Tokyo','Tokyo Prefecture','JP'),(1300,'9450 Kamiya-cho','6823','Hiroshima',NULL,'JP'),(1400,'2014 Jabberwocky Rd','26192','Southlake','Texas','US'),(1500,'2011 Interiors Blvd','99236','South San Francisco','California','US'),(1600,'2007 Zagora St','50090','South Brunswick','New Jersey','US'),(1700,'2004 Charade Rd','98199','Seattle','Washington','US'),(1800,'147 Spadina Ave','M5V 2L7','Toronto','Ontario','CA'),(1900,'6092 Boxwood St','YSW 9T2','Whitehorse','Yukon','CA'),(2000,'40-5-12 Laogianggen','190518','Beijing',NULL,'CN'),(2100,'1298 Vileparle (E)','490231','Bombay','Maharashtra','IN'),(2200,'12-98 Victoria Street','2901','Sydney','New South Wales','AU'),(2300,'198 Clementi North','540198','Singapore',NULL,'SG'),(2400,'8204 Arthur St',NULL,'London',NULL,'UK'),(2500,'Magdalen Centre, The Oxford Science Park','OX9 9ZB','Oxford','Oxford','UK'),(2600,'9702 Chester Road','09629850293','Stretford','Manchester','UK'),(2700,'Schwanthalerstr. 7031','80925','Munich','Bavaria','DE'),(2800,'Rua Frei Caneca 1360 ','01307-002','Sao Paulo','Sao Paulo','BR'),(2900,'20 Rue des Corps-Saints','1730','Geneva','Geneve','CH'),(3000,'Murtenstrasse 921','3095','Bern','BE','CH'),(3100,'Pieter Breughelstraat 837','3029SK','Utrecht','Utrecht','NL'),(3200,'Mariano Escobedo 9991','11932','Mexico City','Distrito Federal,','MX');
    
-   #工作表
+   #工种表
    CREATE TABLE `jobs` (
-     `job_id` varchar(10) NOT NULL,
-     `job_title` varchar(35) DEFAULT NULL,
-     `min_salary` int(6) DEFAULT NULL,
-     `max_salary` int(6) DEFAULT NULL,
+     `job_id` varchar(10) NOT NULL,#工种编号
+     `job_title` varchar(35) DEFAULT NULL,工种名称
+     `min_salary` int(6) DEFAULT NULL,#最低工资
+     `max_salary` int(6) DEFAULT NULL,#最高工资
      PRIMARY KEY (`job_id`)
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
    
@@ -104,17 +104,17 @@
    
    #员工信息表
    CREATE TABLE `employees` (
-     `employee_id` int(6) NOT NULL AUTO_INCREMENT,
-     `first_name` varchar(20) DEFAULT NULL,
-     `last_name` varchar(25) DEFAULT NULL,
-     `email` varchar(25) DEFAULT NULL,
-     `phone_number` varchar(20) DEFAULT NULL,
-     `job_id` varchar(10) DEFAULT NULL,
-     `salary` double(10,2) DEFAULT NULL,
-     `commission_pct` double(4,2) DEFAULT NULL,
-     `manager_id` int(6) DEFAULT NULL,
-     `department_id` int(4) DEFAULT NULL,
-     `hiredate` datetime DEFAULT NULL,
+     `employee_id` int(6) NOT NULL AUTO_INCREMENT, #员工编号
+     `first_name` varchar(20) DEFAULT NULL,   #员工名字
+     `last_name` varchar(25) DEFAULT NULL,#员工姓
+     `email` varchar(25) DEFAULT NULL,#员工的邮箱
+     `phone_number` varchar(20) DEFAULT NULL,#员工电话
+     `job_id` varchar(10) DEFAULT NULL,#工种编号
+     `salary` double(10,2) DEFAULT NULL,#月薪
+     `commission_pct` double(4,2) DEFAULT NULL,#奖金率
+     `manager_id` int(6) DEFAULT NULL,#上司的员工编号
+     `department_id` int(4) DEFAULT NULL,部门编号
+     `hiredate` datetime DEFAULT NULL,#入职时间
      PRIMARY KEY (`employee_id`),
      KEY `dept_id_fk` (`department_id`),
      KEY `job_id_fk` (`job_id`),
@@ -127,10 +127,10 @@
    
    #员工部门表
    CREATE TABLE `departments` (
-     `department_id` int(4) NOT NULL AUTO_INCREMENT,
-     `department_name` varchar(3) DEFAULT NULL,
-     `manager_id` int(6) DEFAULT NULL,
-     `location_id` int(4) DEFAULT NULL,
+     `department_id` int(4) NOT NULL AUTO_INCREMENT,#部门编号
+     `department_name` varchar(3) DEFAULT NULL,#部门名称
+     `manager_id` int(6) DEFAULT NULL,#部门领导的员工编号
+     `location_id` int(4) DEFAULT NULL,#位置编号
      PRIMARY KEY (`department_id`),
      KEY `loc_id_fk` (`location_id`),
      CONSTRAINT `loc_id_fk` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`)
@@ -140,6 +140,212 @@
    (```)
    ```
 
+#### DQL语言的学习
 
+ - 基础查询
+ - 语法:select  查询列表  from 表名  查询列表可以是：表中的字段，常量，表达式，函数等等。
+ - 特点：查询的结果是一个虚拟的表格，不是真实存在的。
 
-​	
+##### 查询表中的单个字段
+
+- select last_name from employee;
+
+##### 查询表中多个字段
+
+- select first_name,last_name from employee;
+
+##### 查询表中的所有的字段
+
+- select * from employee;
+
+##### 查询常量值
+
+- select 100; 后面不需要加上from
+- select 'jone' 后面不需要加上from 
+
+##### 查询表达式
+
+ - select 100*90 ;
+
+##### 查询函数
+
+- select version(); 可以用来查看mysql 的版本号。
+
+##### 起别名
+
+- 好处：
+  - 便于理解
+  - 如果要查询的字段有重名的情况，使用别名可以区分开来
+- 方式一：使用as 关键字
+  - select last_name as 姓, first_name as 名 from employee;
+- 方式二：使用空格
+  - select last_name 姓 ,first_name 名 from employee;
+- 方式三：使用“. ”双引号起别名
+  - select last_name as "第一个 姓" from employee;
+
+##### 去重(distinct)关键字
+
+ - 案例 查询员工表中涉及到的所有的部门编号
+    - sselect   distinct e .department_id from employees e;
+
+##### MySQL中+号的作用
+
+ - 在mysql中+ 只有一个功能，运算符
+
+ - 在mysql中，两个操作数都为数值型，则做加法运算
+
+    - select 100+90;
+
+- 如果一方为字符型，mysql会试图将字符型转换数值型，如果转换成功的话，则继续做加法运算，转换不成的话，则该字段被当作0操作。
+
+  - select '123'+90;结果是213
+  - select 'john'+90;结果是90
+
+- 在mysql中只有其中一个字段是null，则结果一定是null；
+
+  - select null+'90' 结果是null；
+
+- 字段连接(concat())函数 
+
+  - 在mysql中使用concat()函数连接字段
+
+    - ```sql
+      select concat(first_name,last_name) as 姓名 from employees;
+      ```
+
+- ifnull(expr1,expr2) 当expr1字段为null时，显示为expr2
+
+  - ```sql
+    #当commission_pct为null时，则显示为0 ,不为null时则显示对应的字段值
+    select ifnull(commission_pct,0) ,commission_pct 奖金率 from employees;
+    ```
+
+#### 条件查询
+
+ - 语法：	select * from 表名 where 筛选条件
+
+ - 分类：
+
+    - 一，按条件表达式筛选 条件表达式。> 大于 < 小于 = 等于 <>不等于  >= 大于等于 <= 小于等于
+    - 按逻表达式筛选 逻辑运算符 and or not
+    - 模糊查询 like between....and in is null
+
+- 条件运算符的使用
+
+  - 查询员工工资大于12000的信息
+
+    - ```sql
+      select  * from employees where salary>12000
+      ```
+
+  - 查询部门编号不等于90的员工 的员工名字和部门编号
+
+    - ```sql
+      select first_name,last_name from employees where department_id<>90
+      ```
+
+- 按逻辑表达式筛选
+
+  - 案例：查询员工的工资在1万和2万之间的员工的名字，工资，以及奖金
+
+    - ```sql
+      select concat(first_name,last_name) 姓名, salary 工资 , ifnull(commission_pct,0) 奖金 from employees where salary>=10000 and salary<=20000;
+      ```
+
+  - 案例二：查询部门编号不是在90到100之间，或者工资高于15000的员工的信息
+
+    - ```sql
+      select * from employees where department_id <90 or department_id>100 or salary>15000;
+      ```
+
+- 模糊查询 like. Between .. and. in is null is not null
+
+  - 案例一： 查询员工名字中包含字符a的员工的信息
+
+    ```sql
+    select last_name from employees where last_name like '%a%';
+    ```
+
+  -  like特点：
+
+    - 1⃣️：一般和通配符搭配使用
+    - 通配符: % 表示任意多个字符,包含0个字符
+    - _ 任意单个字符
+
+    - 案例一：查询员工名字中第三个字符是n，第五个字符是l的员工姓名和工资。
+
+      - ```sql
+        select last_name,salary from employees where last_name like '__n_l%';
+        ```
+
+    - 案例二:查询员工名字中第二个字符是_的员工的名字和工资。
+
+      - ```sql
+        #方法一：可以直接使用转义字符
+        select last_name,salary from employees where last_name like '_\_%';
+        #方法二： 其中$表示转义的意思 escape 表示需要转义的字符表示 推荐使用
+        select  last_name,salary from employees where last_name like '_$_%' escape '$';
+        ```
+
+  - betwween ……. and 表示在什么什么之间
+
+    - 案例一：查询员工编号在100和200之间的员工信息
+
+      ```sql
+      select * from employees where employee_id between 100 and 200
+      ```
+
+  - in 判断某个字段的值，是否属于in列表中的某一项
+
+    - 特点：
+
+      - 使用in提高语句的简洁度
+      - in列表的值的类型必须是一致的或者兼容
+      - in是不支持通配符和百分号%的。
+
+    - 案例一：查询员工的工种编号是AD_PRES，IT_PROG，AD_VP的员工信息
+
+      - ```sql
+        select * from  employees where job_id in('AD_PRES','IT_PROG','AD_VP');
+        ```
+
+  - is null  或者is not null 判断该字段的是null 或者不是null
+
+    - 案例一:查询员工表中没有奖金的员工信息
+
+      - ```sql
+        select * from employees where commission_pct is null ;
+        ```
+
+    - 案例二：查询员工表中有奖金的员工信息
+
+      - ```sql
+        select * from employees where commission_pct is not null ;
+        ```
+
+    - 安全等于<=>:表示等于某个值
+
+      - 案例一：查询员工表中没有奖金的员工信息
+
+      - ```sql
+        select * from employees where commission_pct <=> null ;
+        ```
+
+      - 案例二：查询员工表中员工工资是12000的员工的信息
+
+        - ```sql
+          select salary from employees  where salary <=>12000;
+          ```
+
+  - 经典面试题：
+
+    - ```sql
+      select * from employee;
+      select * from employee where commission_pct like '%%' and last_name like'%%';
+      
+      上面的两个sql查询的结果又啥区别
+      答案：
+      	如果commission_pct和last_name 该字段的值为null的第二条sql的结果会过滤掉为null的人员信息。
+      ```
+
+    - 
