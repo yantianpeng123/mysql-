@@ -1,4 +1,4 @@
-# mysql—知识点总结
+mysql—知识点总结
 
 ![mysql对比其他的数据库](../mysql知识总结/images/chapter01.jpg)
 
@@ -346,6 +346,358 @@
       上面的两个sql查询的结果又啥区别
       答案：
       	如果commission_pct和last_name 该字段的值为null的第二条sql的结果会过滤掉为null的人员信息。
+      ```
+
+  - 排序查询 (order by)
+
+    - 特点：
+
+      - 1.asc 代表的是升序,desc 代表的是降序 如果不写默认是升序
+      - 2.order by 子句中可以支持单个字段，多个字段，表达式，函数， 别名
+      - 3.order by 子句一般是放在查询的语句中的最后面，limit除外。
+
+    - 语法：select * from employee [where 筛选条件] order by 排序列表 [asc|desc]
+
+      - 案例一：查询员工信息，要求工资从高到低排序
+
+        - ```sql
+          #从高到低
+          select * from employees order by salary desc;
+          #从低到高
+          select * from employees order by salary asc;
+          ```
+
+      - 案例二：查询部门编号>=90的员工信息，按入职时间的先后进行排序
+
+        - ```sql
+          select * from employees where department_id>=90 order by  hiredate asc;
+          ```
+
+      - 案例三：按年薪的高低显示部门员工的信息和年薪，【按表达式排序】
+
+      - ```sql
+        #按照别名排序
+        select salary, salary*12*(1+(ifnull(commission_pct,0))) 年薪 from employees order by 年薪;
+        ```
+
+        ```sql
+        #按照表达式排序
+        select salary, salary*12*(1+(ifnull(commission_pct,0))) 年薪 from employees order by salary*12*(1+(ifnull(commission_pct,0)));
+        ```
+
+      - 案例四：按姓名的长度显示员工的姓名和工资【按函数排序】
+
+        - ```sql
+          #按照函数排序
+          select length(last_name) ,last_name,salary from employees order by length(last_name);
+          ```
+
+      - 案例五：查询员工信息，要求按工资排序，再按员工编号排序
+
+        - ```sql
+          #多个字段排序，
+          select * from employees order by salary desc ,employee_id asc;
+          ```
+
+  - 常见函数：
+
+    - 概念：类似于java中的方法，将一组逻辑语句封装在方法中，对外暴露方法名字
+      - 好处：
+        - 1.隐藏了实现的细节，2.提高了代码的重用性
+      - 调用：
+        - select 函数名(参数) from 表名
+      - 特点：
+        - 函数名
+        - 函数的功能
+      - 分类
+        - 1.单行函数
+          - 如 concat(str1,str2,str3) 链接字符，length(str) 字段长度，ifnull()
+        - 分组函数
+          - 功能：做统计使用，又被称为统计函数，聚合函数，组函数等等。
+
+  - 字符函数：
+
+    - 1.length 获取参数值的字节个数
+
+      - ```sql
+        select length('john') ;
+        select length(last_name) from employees;
+        ```
+
+    - 2.concat(str1,str2)连接字符串
+
+      - ```sql
+        select concat(last_name,'_','first_name') from employee;
+        ```
+
+    - 3.upper转大写,lower转小写
+
+      -  `````sql
+         #转大写
+         select upper('john');
+         #转小写
+         select lower('JOHN');
+         `````
+
+    - 案例一：将姓变成大写，名字变成小写，然后拼接在一起。
+
+      - `````sql
+        select concat(upper(last_name),'_',lower(first_name)) 姓名 from employees;
+        `````
+
+    - 4.substr()msubstring()字符串截取：
+
+      - ```sql
+        #在sql中索引是从1开始的 第一个参数表示从字符串，第二个参数表示从指定的索引处开始截取，一直到结束
+        select substr('李莫愁爱上了陆展元',7) ;
+        #表示从指定的指定的索引处开始截取，截取指定的长度；
+        select substr('李莫愁爱上了陆展元',1,3)
+        ```
+
+    - 案例二：姓名中首字符大写，其他字符小写然后使用+拼接，显示出来
+
+      - ```sql
+        select concat(upper(substr(last_name,1,1)),'_',lower(substr(last_name,2))) from employees;
+        ```
+
+    - 5.instr：返回子串第一次出现的索引，如果找不到返回的是0
+
+      - ```sql
+        #返回殷六侠第一次出现的索引，如果找不到的话则返回的是0
+        select instr('杨不悔爱上了殷六侠','殷六侠') 索引;
+        ```
+
+    - trim()：去除前后的空格
+
+      - ```sql
+        #	去除前后左右的空格
+        select length(trim('       kkkk      '));
+        #去除前后指定的字符串，from后面的字符串可以完全去除掉
+        select trim('a'from 'aaaaaa张aaaaa翠山aaaaaaaa');
+        ```
+
+    - lpad()：用指定的字符实现左填充
+
+      - ```sql
+        #不足10的用0补全10位 结果类似于0000000012
+        select lpad('12',10,'0');
+        ```
+
+    - rpad():使用指定的字符实现右填充
+
+      - ````sql
+        #不足10的使用0补全10位结果类似于1200000000
+        select rpad('12',10,'0');
+        ````
+
+    - replace()：实现字符的替换
+
+      - ```sql
+        #实现字符的替换，周芷若被替换成了赵敏
+        select replace('张无忌爱上了周芷若','周芷若','赵敏') ;
+        ```
+
+  - 数学函数；
+
+    - round 四舍五入
+
+      ````sql
+      #四舍五入
+      select round(1.55);
+      ````
+
+    - cell 向上取整，返回>=该参数的最小整数
+
+      ````sql
+      #向上取整
+      select cell(1.2)
+      ````
+
+    - floor 向下取整，返回<=该参数的最大整数
+
+      ````sql
+      #向上取整
+      select floor(-9.99);
+      ````
+
+    - truncate :截取小数点后指定的位数
+
+    - ````sql
+      #截取小数点后一位
+      select truncate(1.89,1);
+      ````
+
+    - mod():取余数
+
+      - ```sql
+        #mod取模，也被称为取余数
+        select mod(10,3) ;
+        ```
+
+  - 日期函数：
+
+    - now():返回当前系统日期➕时间
+
+      - ```sql
+        select now();
+        ```
+
+    - curdate():返回当前是的系统日期，不包含时间
+
+      - ```sql
+        select curdate();
+        ```
+
+    - curtime():返回当前系统时间，不包含日期
+
+      - ````sql
+        select curtime();
+        ````
+
+    - 获取指定的部分，年，月，日，小时，分钟，秒
+
+    - ````sql
+      #获取当前的系统的年
+      select YEAR(now()) 年;
+      select YEAR('1998-01-01') 年; 返回的是1998;
+      select YEAR(hiredate) from employees;
+      	
+      #获取当前系统的月
+      select MONTH(now()) 月;
+      
+      ````
+
+    - str_to_date();将字符串通过指定的格式转换为日期。
+
+      ```sql
+      select str_to_date('03-04-1998','%c-%d-%Y');
+      #查询入职日期在1998年4月3号之后入职的。
+      select * from employees where hiredate >=str_to_date('03-04-1998','%c-%d-%Y');
+      ```
+
+      对照指定的字段：
+      ![](../mysql知识总结/images/chapter02.jpg)
+
+    - date_format:将日期转换成字符
+
+    - ````sql
+      select date_format(now(),'%y-%m-%c %H:%h:%i:%s') 日期;
+      ````
+
+    - 查询有奖金的员工姓名和入职日期(xx月/xx日/xx年);
+
+      - ```sql
+        select concat(first_name,last_name),date_format(hiredate,'%m月%c日%Y年') from employees where commission_pct is not null;
+        ```
+
+  - 其他函数：
+
+    - ````sql
+      #查看当前mysql版本号
+      select version();
+      #查看当前正在使用的数据库
+      select database();
+      #查看当前的用户
+      select user();
+      ````
+
+  - 流程控制函数
+
+    - if 类似于java的if--else函数
+
+      - ```sql
+        #select (条件表达式,'结果1','结果2');条件表达式成立的话，执行1，否则执行2
+        select if(10>5,'大','小') 结果;
+        ```
+
+    - 查询有奖金的员工的姓名和奖金，要是有奖金的话显示嘻嘻，没有奖金的话显示呵呵
+
+      - ````sql
+        select last_name,salary,commission_pct, if(commission_pct is null ,'没有奖金,呵呵','又奖金，嘻嘻')from employees;
+        ````
+
+    - case函数在mysql中
+
+      - 语法:
+      - case 要判断的字段或者表达式 
+        - when 常量1 then 要显示的值1或者语句1
+        - when 常量2 then 要显示的值2或者语句2
+        - when 常量3 then 要现实的值3货真语句3
+
+    - 案例一：#给员工涨工资，部门为30的涨工资1.1倍 部门为40的涨工资1.2倍，部门为50的涨工资1.3倍 其他的部不涨工资
+
+      ```sql
+      #case方式的使用的第一种情况
+      select department_id,salary 原始工资,
+             case department_id
+                 when 30 then salary*1.1
+                 when 40 then salary*1.2
+                 when 50 then salary*1.3
+                 else salary
+             end 涨幅之后的工资
+      from employees;
+      ```
+
+    - 语法二：
+
+      - case
+      - when 常量1 then 要显示的值或者语句1
+      - when 常量2 then 要显示的值或者语句2
+      - when 常量3 then 要显示的值或者语句3
+      - else 
+      - end
+
+    - ```sql
+      case的第二种用法
+      select last_name,salary 原始工资,department_id,
+             case
+                 when department_id=30 then salary*1.1
+                 when department_id=40 then salary*1.2
+                 when department_id=50 then salary*1.3
+                 else salary
+            end 涨幅之后的工资
+      from employees order by department_id
+      ```
+
+    - 案列二：
+
+      - 显示部门员工的工资情况，大于20000的为A，大于15000的为B，大于10000的为C，大于5000为D，其他的为E
+
+        - ```sql
+          select salary,last_name,
+                 case
+                     when salary>20000 then 'A'
+                     when salary>15000 then 'B'
+                     when salary>10000 then 'c'
+                     when salary>5000 then 'd'
+                     else 'e'
+                     END 工资水平
+          from employees
+          ```
+
+  - 分组函数:
+
+    - 功能:用于统计使用，又称为聚合函数或者统计函数，或者组函数
+
+    - 分类：
+
+      - sum()求和，avg()平均值，max()最大值，min()最小值，count()求和
+
+    - 1.sum()简单使用
+
+    - ```sql
+      #查询工资的总和
+      select sum(salary) from employee;
+      #查询平均工资
+      select avg(salary) from employee;
+      #查询最大的工资
+      select max(salary) from employee;
+      #查询最小的工资
+      select min(salary) from employee;
+      #查询发工资的人的个数
+      select count(salary) from employee;
+      #聚合函数一块使用
+      select sum(salary),avg(salary),count(salary),max(salary),min(salary) from employees
       ```
 
     - 
