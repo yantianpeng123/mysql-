@@ -1,4 +1,4 @@
-mysql—知识点总结
+##mysql—知识点总结
 
 ![mysql对比其他的数据库](../mysql知识总结/images/chapter01.jpg)
 
@@ -1134,6 +1134,163 @@ mysql—知识点总结
           select * from boys cross join beauty;
           ```
 
-        - 
+  - 子查询:
 
-        - 
+    - 含义：出现在其他语句中的select语句，称为子查询或内查询，外部的查询语句，称为主查询或者外查询。
+
+    - 分类：
+
+      - 按子查询出现的位置：select 后面(仅仅支持标量子查询)，from 后面(表子查询)，where或者having后面(标量子查询,列子查询,行子查询),exists后面(表子查询)
+
+    - 按照结果集的行列数不同：
+
+      - 标量子查询(结果集只有一行一列)
+      - 列子查询(结果集只有一列多行)
+      - 行子查询(结果集有一行多列)
+      - 表子查询(结果集一般是多行多列)
+
+    - 一：where或者having后面的(标量子查询，列子查询,行子查询)
+
+      - 特点：
+        + 1.子查询放在小括号内
+        + 2.子查询一般放在条件的右侧
+        + 3.标量子查询，一般搭配着单行操作符使用 >  < >= <= <>
+        + 4.子查询执行是优先于主查询进行的。
+      - 列子查询：一般搭配着多行操作符使用 in any/some all
+
+    - 1.标量子查询
+
+    - 案例一：查询谁的工资比Abel的高
+
+      - ```sql
+        select last_name,salary from employees where salary>(select salary from employees where  last_name='ABel');
+        ```
+
+    - 案例二:查询jod_id 和141号员工相同，salary比143号员工多的，员工的姓名和job_id和工资。
+
+      ```sql
+      select last_name,salary,job_id  from employees where job_id =(select job_id from employees where employee_id = 141)and salary>(select salary from employees where employee_id = 143 )
+      ```
+
+    - 案例三:查询工资最少的员工的姓名和job_id和工资
+
+      - ````sql
+        select last_name,salary,job_id from employees where salary = (select min(salary) from employees);
+        ````
+
+    - 案例四：查询最低工资大于50号部门最低工资的部门id和其最低工资。
+
+      - ```sql
+        select min(salary),department_id from employees group by department_id
+        having min(salary)>(select min(salary) from employees where department_id =50);
+        ```
+
+    - 非法使用的标量子查询(子查询返回的结果不是一行一列)
+
+  - 列子查询(多行子查询)的使用，使用多行比较操作符号
+
+    | 操作符     | 含义                       |
+    | ---------- | -------------------------- |
+    | in/ not in | 等于列表中                 |
+    | ANY/some   | 和子查询返回的某一个值比较 |
+    | ALL        | 和子查询返回的所有的值比较 |
+    |            |                            |
+
+    - 案例一：查询location_id是1400或者1700的所有的员工姓名
+
+      - ```sql
+        select last_name from employess where department_id in(
+        select department_id from location_id in(1400,1700));
+        ```
+
+    - 案例二：查询其他工种中比job_id为"IT_PROG"任意工资低的员工的员工号，姓名和job_id以及salary。
+
+      - ```sql
+        select employee_id,last_name,job_id ,salary from employees where salary<any(select salary from employees where job_id='IT_PROG') and job_id<>'IT_PROG';
+        ```
+
+    - 案例三：查询其他工种中比job_id为"IT_PROG"所有工资低的员工的员工号，姓名和job_id以及salary。
+
+      - ```sql
+        select employee_id,last_name,job_id ,salary from employees where salary<ALL(select salary from employees where job_id='IT_PROG') and job_id<>'IT_PROG';
+        ```
+
+  - 行子查询：
+
+    - 案例一：查询出员工编号最小和工资最高的员工的姓名和工资
+
+      - ```sql
+        #方式一:
+        select last_name,salary from employees where employee_id = (select min(employee_id) from employees) and salary = (select max(salary) from employees);
+        #方式二：相当于括号里面的等于括号里面的
+        select last_name,salary from employees where (employee_id,salary)  =(select min(employee_id),max(salary) from employees);
+        ```
+
+  - select 后面：==比较有意思 可以重点看看== 仅仅只出标量子查询
+
+    - 子查询的结果充当一张表，必须起一个别名
+
+    - 案例一：
+
+      - ```sql
+        select d.department_id ,(select count(*) from employees e
+                                where d.department_id=e.department_id) 个数
+        from departments d
+        #下面的sql逻辑是正确的但是结果不是想要的,因为在使用count(*)时会忽略该字段为null的值。
+        select count(1),d.department_id from employees e left join departments d on e.department_id = d.department_id
+        
+        group by d.department_id;
+        
+        
+        ```
+
+    - 案例三：查询每个部门的平均工资等级和平均工资和部门id。
+
+      - ```sql
+        select avg_g.平均工资,avg_g.department_id,j.grade_level from (
+            select avg(salary) 平均工资 ,department_id from  employees group by department_id
+            ) avg_g  inner join  job_grades j on avg_g.平均工资 between j.lowest_sal and j.highest_sal;
+        ```
+
+  - exists后面(相关子查询)：
+
+    - exists(完整的查询语句)，返回的结果是1或者0
+
+    - 案例一：查看exists的返回结果
+
+      - ```sql
+        select exists(select employee_id from empolyess);返回的结果是1
+        select exists(select employee_id from employess where salary =30000)返回的结果是0
+        ```
+
+    - 案例二：查询有员工的部门名称
+
+      - ````sql
+        #方式一：
+        select department_name from departments d where d.department_id in(
+            select department_id from employees)
+            );
+            #方式二
+            select department_name from departments d where
+            exists(select * from employees e where e.department_id =d.department_id);
+        ````
+
+    - 案例二：查询没有难朋友的女神信息
+
+      - ```sql
+        select * from beauty  b where not exists(select * from boys ab where ab.id =b.boyfriend_id)
+        
+        ```
+
+  - 典型案例：
+
+    - 查询各部门工资比本部门平均工资高的员工的员工号，姓名和工资
+
+    - ```sql
+      select last_name,salary,e.department_id
+      from employees e inner join
+               (select avg(salary) 平均工资,department_id from employees  group by department_id) av
+      on e.department_id = av.department_id where e.salary>av.平均工资;
+      ```
+
+    - 
