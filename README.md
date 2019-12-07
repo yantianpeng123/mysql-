@@ -266,7 +266,7 @@ mysql—知识点总结
     select last_name from employees where last_name like '%a%';
     ```
 
-  -  like特点：
+  - like特点：
 
     - 1⃣️：一般和通配符搭配使用
     - 通配符: % 表示任意多个字符,包含0个字符
@@ -700,4 +700,440 @@ mysql—知识点总结
       select sum(salary),avg(salary),count(salary),max(salary),min(salary) from employees
       ```
 
-    - 
+    - 特点：
+
+      - 1.sum(),avg() 一般被用于处理数值型
+
+      - 2.max(),min(),count() 可以被用于处理任何类型的数据。
+
+      - 3.sum()和avg(),max(),min(),count()是忽略null值的.
+
+      - 4.可以搭配distinct 去除重复的数据
+
+      - ````sql
+        select sum(salary),avg(salary),count(salary),max(salary),min(salary) from employee
+        ````
+
+      - count()函数的详细介绍
+
+        - coutn(字段名字) 统计该字段不为空的情况下有多少列。
+        - count(*)表示统计该表中有多少列，
+        - count(1)表示统计该表中有多少列，其中1可以用任意的常量代替。
+        - 效率：
+          - MYISAM存储引擎下面，count(*)的效率是最高的
+          - INNODB存储引擎下面，count(*)和count(1)的效率差不多的，比count(字段)要高一些,因为count(字段)的话，会判断该字段是否为空。
+
+      - 和分组函数一同查询的字段有限制的
+
+        - ```sql
+          #和分组函数一起查询的字段一般是group by 后面的字段
+          select avg(salary)  from employees;
+          ```
+
+        - 案例三：查询员工表中最大入职时间和最小入职时间的相差的天数
+
+          ```sql
+          #datediff 用于计算两个日期相差的天数
+          select datediff(max(hiredate),min(hiredate)) 天数,max(hiredate),min(hiredate) from employees;
+          ```
+
+    - group by 的用法：
+
+      - 语法：
+
+        - select 分组函数，列(要求出现在group by的后面)
+        - from 表名 [where 筛选条件] group by 分组列表 [order by 子句]；
+        - 注意：
+          - 查询列表表特殊,要求是分组函数和group by后面出现的字段。
+
+      - 案例一：查询每个部门的平均工资
+
+        - ```sql
+          select avg(salary) 平均工资,department_id 部门id from employees group by department_id;
+          ```
+
+      - 添加筛选条件
+
+        - 案例一：查询邮箱中含有a的字符，每个部门的平均工资
+
+          - ````sql
+            select avg(salary),department_id from employees where email like '%a%' group by department_id;
+            ````
+
+        - 案例二；查询有奖金的每个领导手下员工的最高工资
+
+          - ```sql
+            select max(salary),manager_id from employees where commission_pct is not null group by manager_id;
+            
+            ```
+
+      - 添加分组后的筛选条件
+
+        - 案例一：查询每个部门的员工数量大于2
+
+          - ````sql
+            案例分析：
+            1.先查询出来每个部门的人数，
+            	select count(*),department_id from employees group by department_id;
+            2.再根据每个部门的人数，筛选出来人数大于2的部门的信息
+            	select count(*) 人数,department_id from employees group by department_id having 人数>2;
+            	
+            添加分组后的筛选条件，使用having过滤该条件，having 必须放在group by的后面。where 必须放在group by的前面。
+            ````
+
+        - 案例二：查询每个工种有工资的员工的最高工资
+
+          - ````sql
+            select max(salary) 最高工资,job_id from employees where commission_pct is not null  group by job_id having 最高工资>12000;
+            ````
+
+        - 案例三：查询领导编号大于120，并且每个领导的员工的最低工资大于5000的领导是那个，以及最低工资
+
+          - ```sql
+            select min(salary) 最低工资,manager_id from employees where manager_id >120 group by manager_id having 最低工资>5000;
+            
+            ```
+
+        - 特点：
+
+          |            |        位置         | 关键字 | 数据源         |
+          | ---------- | :-----------------: | -----: | -------------- |
+          | 分组前筛选 | group by子句的前面  |  where | 原始表         |
+          | 分组后筛选 | group by 子句的后面 | having | 分组后的结果集 |
+
+          - 注意：
+            - 分组函数做条件肯定是放在having子句中。
+            - 能用分组前筛选的话，优先分组前筛选。
+          - group by子句支持单个字段分组，多个字段分组(多个字段之间用逗号隔开,没有顺序要求),表达式或者函数。
+          - 可以和排序一块使用，但是放在最后的。
+
+
+  - 按分组函数或者 表达式分组
+
+    - 案例一：按员工姓名的长度分组，查询每一组的员工个数，筛选员工个数>5的有哪一些
+
+      - ```sql
+        #按照表达式分组 count(*)分组
+        select length(first_name) 长度  ,count(*) from employees group by length(first_name) having count(*)>5;
+        ```
+
+  - 按多个字段分组
+
+    - 案例一:查询每个部门每个工种的员工的平均工资。
+
+      - ````sql
+        select avg(salary) from employees group by job_id,department_id;
+        ````
+
+    - 添加排序：
+
+      - ```sql
+        #使用order by 排序
+        select avg(salary)  平均工资 from employees group by job_id,department_id order by 平均工资 desc;
+        ```
+
+      - 案例三：查询最高工资和最低工资的差距
+
+      - ```sql
+        select (max(salary)-min(salary)) from employees;
+        ```
+
+  - 连接查询
+
+    - 含义：又称多表查询，当查询的字段来自于多个表时，就会用到连接查询
+
+    - 案例一：查询表中对应的男女朋友的关系
+
+      - ````sql
+        select y.name,s.boyName from beauty y,boys s
+        where y.boyfriend_id = s.id;
+        ````
+
+    - 分类：
+
+      - 按年代分类：
+        ​	sql92标准  sql99标准
+
+      - 按功能分类：
+
+        - 内链接:
+
+          - 等值连接:
+
+          - 特点：多表等值连接的结果为多表的交集部分。
+
+          - n表连接，至少需要n-1个链接条件
+
+          - 多表连接的顺序没有要求
+
+          - 一般需要为表起别名
+
+          - 可以搭配前面介绍的所有子句使用，比如排序，分组和筛选。
+
+            - ```sql
+              #等值连接，boyfriend = id 的时候会匹配出来
+              #查询女神名和对应的男神名字
+              select y.name,s.boyName from beauty y,boys s
+              where y.boyfriend_id = s.id;
+              ```
+
+            - 案例二：查询员工名和对应的部门名字
+
+            - ```sql
+              #取值具有相同意义的字段的id
+              select e.last_name,d.department_name  from employees e,departments d
+              where e.department_id = d.department_id;
+              ```
+
+            - 案例三:
+
+              ```sql
+              #查询员工名，工种号，工种名字
+              select e.last_name,d.department_name  from employees e,departments d
+              where e.department_id = d.department_id;
+              ```
+
+            - 案例四：添加筛选条件使用and连接
+
+              - ```sql
+                select e.last_name,j.job_title from employees e ,jobs j
+                where e.job_id  = j.job_id
+                and e.commission_pct is not null;
+                ```
+
+              - 案例五：查询城市名中第二个字符为o的部门名称和城市名字
+
+              - ````sql
+                select l.city,d.department_name from locations l,departments d
+                where l.location_id = d.location_id
+                and d.department_name like '_o%'
+                ````
+
+            - 添加分组函数
+
+              - 查询每个城市的部门个数
+
+                - ````sql
+                  select count(*),l.city from departments d,locations l
+                  where d.location_id = l.location_id
+                  group by l.city;
+                  ````
+
+                - 查询又奖金的每个部门的部门名称和部门的领导编号和该部门的最低工资
+
+                  - ````sql
+                    select d.department_name,d.manager_id,min(salary) from departments d,employees e
+                    where d.manager_id = e.manager_id and e.commission_pct is not null
+                    group by d.manager_id,d.department_name;
+                    ````
+
+                - 查询每个工种的工种名称和员工的个数，并且按照员工跟书降序排列
+
+                - ````sql
+                  #先分组在排序
+                  select j.job_title,count(*) 个数 from employees e,jobs j
+                  where e.job_id = j.job_id
+                  group by j.job_title
+                  order by 个数;
+                  ````
+
+                - ```sql
+                  #三表连接,使用and连接
+                  select e.last_name,d.department_name,l.city from employees e,departments d,locations l
+                  where e.department_id = d.department_id
+                  and d.location_id = l.location_id
+                  and l.city like 'S%';
+                  ```
+
+                - 
+
+          - 非等值连接
+
+            - 测试非等职连接：
+
+              ```sql
+              CREATE TABLE job_grades
+              (grade_level VARCHAR(3),
+               lowest_sal  int,
+               highest_sal int);
+              
+              INSERT INTO job_grades
+              VALUES ('A', 1000, 2999);
+              
+              INSERT INTO job_grades
+              VALUES ('B', 3000, 5999);
+              
+              INSERT INTO job_grades
+              VALUES('C', 6000, 9999);
+              
+              INSERT INTO job_grades
+              VALUES('D', 10000, 14999);
+              
+              INSERT INTO job_grades
+              VALUES('E', 15000, 24999);
+              
+              INSERT INTO job_grades
+              VALUES('F', 25000, 40000);
+              ```
+
+            - 案例一：查询员工工资和工资等级
+
+            - ```sql
+              #在员工表和工资等级表；两个表并没有很多的关联，我们可以使用非等值连接 建立两个表之间的关系。
+              select e.salary,j.grade_level
+              from employees e,job_grades j
+              where e.salary
+                        between j.lowest_sal and j.highest_sal;
+              ```
+
+            - 
+
+          - 自连接:数据来自同一张表，在连接的时候需要使用该表中的字段对应其他字段
+
+          - ````sql
+            #查询员工的姓名和编号以及该员工的领导的名字和编号 
+            #第一个表可以看作是员工表，第二个表可以看作领导表
+            select e.last_name 员工的名字,e.employee_id 员工id ,
+                   m.last_name 该员工对应的领导的名字 ,m.employee_id
+            from employees e ,employees m
+            where e.manager_id = m.employee_id
+            order by  该员工对应的领导的名字 desc ;
+            ````
+
+        - Sql99语法：
+
+          - 语法：
+          - select 查询列表 from 表一 别名 [连接类型] join on 连接条件 
+          - 【where 筛选条件】
+          - 【group by 分组】
+          - 【having 过滤条件】
+          - 【order by 排序】
+
+        - 内链接 inner：
+
+          - 语法：
+
+            - select 查询列表 from 表1 别名 inner join 表2 别名 on 连接条件
+
+            - 分类
+
+              - 等值连接：
+
+              - 案例一：查询员工号和部门号
+
+              - ```sql
+                select e.last_name,d.department_name from employees e inner join departments d on e.department_id = d.department_id;
+                
+                ```
+
+              - 案例二：查询员工名字中包含e的员工的名字和工种号
+
+              - ````sql
+                select e.last_name,j.job_title from employees e inner join jobs j on e.job_id = j.job_id
+                where e.last_name like '%e%';
+                ````
+
+              - 案例三：查询部门个数大于3的城市名和部门个数(分组➕筛选)
+
+              - ````sql
+                select count(*) 部门个数,l.city from locations l inner join departments d on l.location_id = d.location_id
+                group by l.city having 部门个数>3;
+                ````
+
+              - 案例四：查询哪个部门的员工的个数大于3的部门员工和员工个数，并且按个数降序排列
+
+                - ```sql
+                  select count(*),d.department_name from employees e
+                                                           left join departments d on e.department_id = d.department_id
+                  group by d.department_name
+                  having count(*)>3 order by count(*) desc
+                  ```
+
+              - 案例五：查询员工名字，部门名字，工种名字，并按照部门名称排序
+
+              - ```sql
+                select e.last_name,d.department_name,j.job_title from employees e inner join departments d on e.department_id = d.department_id
+                inner join jobs j on e.job_id = j.job_id order by d.department_name desc
+                ```
+
+              - 非等值连接：
+
+              - 案例一：查询员工的工资级别
+
+              - ```sql
+                select e.salary,g.grade_level from employees e inner join  job_grades g on e.salary between g.lowest_sal and g.highest_sal;
+                
+                ```
+
+              - 案例二: 查询工资级别的个数>2的个数，并且按照工资级别降序排列
+
+              - ````sql
+                select g.grade_level,count(*) from employees e inner join job_grades g on e.salary between g.lowest_sal and g.highest_sal
+                group by g.grade_level having count(*)>2 order by g.grade_level desc;
+                ````
+
+              - 自连接：
+
+              - 案例三：查询姓名中包含字符k的员工的姓名，上级的名字
+
+              - ```sql
+                select e.last_name,m.last_name from employees e inner join employees m on e.manager_id = m.employee_id
+                where e.last_name like '%k%'
+                ```
+
+              - 
+
+        - 外链接
+
+          - 应用场景:
+
+            - 用于查询一个表中有，而另外一个表中没有的记录
+
+          - 特点：
+
+            - 1.外连接的查询结果为主表中的所有的记录
+            - 2.如果从表中有和他匹配的，则显示匹配的值。
+            - 如果从表中没有和他匹配的则显示null；
+              - 外连接查询结果==内链接结果+主表中有而从表中没有的记录。
+
+          - 左外连接：left join 左边的是主表
+
+          - ```sql
+            案例一：查询男朋友不在男神表的女神名
+            select a.name from beauty a left join boys b on a.boyfriend_id = b.id where b.id is null;
+            ```
+
+          - 右外连接：right join 右边的主表
+
+            - ```sql
+              #查询男朋友不在男神表的女神名
+              select ab.name from boys  b right join beauty ab on b.id = ab.boyfriend_id where b.id is null;
+              ```
+
+            - 案例一：查询哪个部门没有员工
+
+            - ```sql
+              #左外连接
+              select d.department_name ,e.employee_id from departments d left join employees e on d.department_id = e.department_id
+              where e.employee_id is null;	
+              #右外连接
+              select d.department_name,e.employee_id from employees  e right join departments d on e.department_id = d.department_id
+              where e.employee_id is null;
+              ```
+
+            - 
+
+          - 左外连接和右外连接交换两个表的顺序，可以实现同样的效果。
+
+          - 全外连接：相当于内链接的结果+表1中有但表2中没有的+表2中有但是表1中没有的
+
+        - 交叉连接：cross
+
+        - ```sql
+          #实现一个笛卡尔成绩
+          select * from boys cross join beauty;
+          ```
+
+        - 
+
+        - 
