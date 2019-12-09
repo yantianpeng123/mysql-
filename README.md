@@ -1293,4 +1293,214 @@
       on e.department_id = av.department_id where e.salary>av.平均工资;
       ```
 
-    - 
+- 分页查询
+
+
+  - 应用场景：要显示的数据一页显示不了的时候，需要用到分页查询。
+
+
+    - 关键字   limit   一般放在最后面 ，limit offset, size offset:要显示的条目的起始索引(起始索引从0开始) ，size要显示的条目的个数。
+
+  - 案例一：查询前五条员工信息
+
+
+    - ```sql
+      select * from employees limit 0,5;
+      ```
+
+  - 案例二：查询第11条到第25条的记录
+
+
+    - ````sql
+      select * from employees limit 10,15;
+      ````
+
+  - 案例三：又奖金的员工信息，并且工资比较高的前10名显示出来。
+
+
+    - ```sql
+      select * from employee where comm_pict is not null order by salary 10 limit 10;
+      ```
+
+  - 特点：
+
+
+    - limit：放在查询语句的最后
+    - 索引一般是从0开始
+    - 公式： 要显示的页数page，每页的条目size：
+    - select 查询列表 from employees limit (page-1)*size ,size;
+
+  - 联合查询：union
+
+
+    - union联合查询 合并,将多条查询语句的结果合并成一个结果。
+
+    - 场景：要查询的结果来自于多个表，且多个表没有直接的连接关系，但要查询的信息一直时
+
+    - 特点： 
+
+
+      - 1.要求多条查询语句的查询列表列数是一致的
+      - 2.查询的数据会祛除重复的
+      - 3.使用union all 不去除重复的。
+
+    -  案例一：
+
+
+      - ```sql
+        select * from employees where last_name like '%a%' or department_id>50;
+        #等同于
+        select * from employees where last_name like '%a%'
+        union
+        select * from employees where department_id>50;
+        ```
+
+- DML语言：
+
+  - 数据操作语言
+
+    - 插入insert
+    - 修改 update
+    - 删除 delete
+
+  - 插入语句：
+
+    - 语法：insert into 表名(列名1,列名2,列名3.....)values(值1,值2,值3.....);
+
+    - 插入的值的类型需要与列的类型一致或者兼容。
+
+    - ```sql
+      insert into beauty (id,name,sex,borndate,phone,photo,boyfriend_id)
+      values (13,'唐艺昕','女','1998-09-09','13858389564',null,'6');
+      ```
+
+    - 不可以为null的列必须插入值，可以为null的列如何插入值？
+
+    - ```sql
+      #方式一：直接使用null值替代
+      insert into beauty (id,name,sex,borndate,phone,photo,boyfriend_id)
+      values (13,'唐艺昕','女','1998-09-09','13858389564',null,'6');
+      #方式二：字段为空的话，不需要添加该字段。同时省掉字段和值。
+      insert into beauty (id,name,sex,borndate,phone,boyfriend_id)
+      values (13,'金星','女','1998-09-09','13800000000','9');
+      ```
+
+    - 列的顺序可以调换
+
+    - ```sql
+      insert  into beauty(name,sex,photo) values ('关晓彤','女','http://www.baidu.com');
+      ```
+
+    - 列数必须和字段的值一致。
+
+    - ````sql
+      #这是一种错误的方式
+      insert  into beauty(name,sex,photo) values ('关晓彤','女','http://www.baidu.com','2019-09-01');
+      ````
+
+    - 可以省掉列名，但是字段的值和顺序必须和表中的保持一致。
+
+    - ```sql
+      insert into beauty values (13,'唐艺昕','女','1998-09-09','13858389564',null,'6');
+      ```
+
+    - 插入的另外一种方式
+
+      - ```sql
+        #插入的另外一种方式
+        insert into  beauty set id = 16, name ='刘涛', phone ='999' ,boyfriend_id = 9;
+        ```
+
+    - 两种方式PK
+
+      - 方式一支持插入多行，方式二不支持
+
+      - 方式一支持自查询，方式二不支持
+
+      - ````sql
+        insert into beauty(id,name,phone) select(20,'宋茜','1570000000')
+        ````
+
+  - 修改语句：
+
+    - 修改单表中的记录
+
+      - 语法：update 表名 set 列名1 = ‘新值1’,列名2=‘新值2’ where 筛选条件;
+
+      - ```sql
+        #修改beauty表中姓唐的女神的电话为138000000
+        update beauty set phone ='138000000' where name like '唐%';
+        ```
+
+      - 案例二：修改boy表中id号为2的名称为张飞，魅力值10
+
+        - ````sql
+          update boy set boyname='张飞' ,usercp='10' where id =2;
+          ````
+
+    - 修改多表中的记录。
+
+      - sql92语法：
+
+        ```sql
+        update 表1 别名1,表2 别名2 set 列1 = 值1 ，列2=值2 where 连接条件 and 筛选条件
+        ```
+
+      - sql99语法：
+
+        - ```sql
+          update 表1 别名1 inner|left|right join 表2 别名2 on 连接条件 set 列1=值1，列2=值2 where 筛选条件；
+          ```
+
+      - 案例一：修改张无忌的女朋友的电话为113,并且魅力值为200
+
+      - ```sql
+        #sql99语法
+        update boys b inner join beauty a on b.id =a.boyfriend_id
+        set a.phone='1133',b.userCP = 200 where b.boyName='张无忌'
+        #sql92语法
+        update beauty b ,boys a set b.phone ='124009990' ,a.userCP=70 where b.boyfriend_id = a.id and a.boyName='段誉';
+        ```
+
+      - 案例三：修改没有男朋友的女神的男朋友编号为2
+
+        - ```sql
+          update beauty b left join boys ab
+            on b.boyfriend_id = ab.id set b.boyfriend_id =2 where ab.id is null;
+          ```
+
+  - 删除语句：
+
+    - 单表的删除
+
+    - 方式一：delete
+
+      - 语法：delete from 表名 where 筛选条件
+
+        - ```sql
+          delete from boys where id = 9；
+          ```
+
+        - 
+
+      - truncate table 表名
+
+    - 多表的删除
+
+      - 语法：sql92语法：delete 别名1,别名2 from 表1 别名1 ,表2 别名2 where 连接条件 and 筛选条件
+
+      - 语法：sql99：delete 别名1,别名2 from 表1 别名1 inner|left|right join 表2 别名2
+
+      - on 连接条件 where筛选条件
+
+      - 删除段誉的女朋友信息和段誉的信息
+
+      - ````sql
+        #sql92
+        delete b,ab from boys b ,beauty ab where b.id =ab.boyfriend_id and b.boyName='段誉';
+        #sql99
+        delete b from boys b left join beauty ab on b.id = ab.boyfriend_id where b.boyName='段誉';
+        
+        ````
+
+      - 
