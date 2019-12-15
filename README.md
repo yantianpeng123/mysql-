@@ -1514,7 +1514,198 @@
 - 数据库DDL语言：
 
   - 主要用来库和表的管理语言。
+
   - 库的管理：创建，修改和删除
+
   - 表的管理：创建，修改和删除
+
   - 创建create 修改：alter 删除drop
-    - 库的管理（112）：
+
+    - 库的创建：
+
+    - 语法：create datadase 库名
+
+    - 案例一：创建数据库
+
+    - ```sql
+      #方式一
+      create database books;
+      #方式二：
+      create database if not exists books;
+      ```
+
+    - 更改数据库字符集：
+
+    - ```sql
+      alter database books character set gbk;
+      alter database books character set utf8;
+      ```
+
+    - 数据库的删除：
+
+    - ```sql
+      drop database if exists books; 
+      ```
+
+  - 表的管理：
+
+    - 表的创建：
+
+    - 语法：create table 表名(字段名1 类型1(长度) 约束,字段名2 类型2(长度) 约束 );
+
+    - ```sql
+       create table book(
+        id int ,#编号
+        name varchar(20)#姓名
+        price double ,#价格
+        authorId int ,#作者编号
+        publishDate Datetime #出版日期
+       );
+      ```
+
+    - 表的修改：
+
+      - 修改列的类型：
+
+        ```sql
+        alter table book change column publishDate pushDate Datetime;
+        ```
+
+      - 约束修改列名
+
+      - ```sql
+        alter table book modify column pushDate TIMEstamp;
+        ```
+
+      - 添加新列
+
+        - ```sql
+          alter table book add column annual double;
+          ```
+
+      - 删除一列
+
+      - ```sql
+        alter table book drop column annual;
+        ```
+
+      - 修改表名
+
+        - ````sql
+          alter table author rename to  book_author
+          ````
+
+      - 表的删除：
+
+      - ```sql
+        drop table book_author;
+        drop table 表名;
+        show tables ;#查看当前库的所有的表。
+        ```
+
+      - 通常的写法：
+
+        - ```sql
+          #创建库
+          drop database if exists 旧库名;
+          create database 新库名字;
+          #创建表
+          drop table 表名
+          create table 表名();
+          
+          ```
+
+      - 表的复制：
+
+        - ```sql
+          #仅仅复制表的结构
+          create table 新表名 like 旧表名
+          #复制表中的数据➕表的结构
+          create table 新表名 select * from 	旧表名;
+          #仅仅复制某一些字段：
+          create table 新表名 
+          select id,name from 旧表名字 where 1=2;
+          
+          ```
+
+- Mysql----数据类型
+
+  - 常见的类型：
+
+    - 数值型：
+
+      - 整型：
+
+        - | 字节数 | tinyint | smallint | mediumint | int/Integer | bigInt |
+          | ------ | ------- | -------- | --------- | ----------- | ------ |
+          |        | 1       | 2        | 3         | 4           | 8      |
+          |        |         |          |           |             |        |
+          |        |         |          |           |             |        |
+
+        - 特点：在创建的时候默认是有符号的，如果想要设置无符号的话，需要添加unsigend
+
+        - 如果插入的数值超出啦范围，会报错异常，并且是插入的是临界值。
+
+        - 如果不设置长度,会设置默认的长度。长度代表的是显示的最大宽度，如果没有的话，可以在设置的时候使用zerofill代替。
+
+      - 小数型：
+
+        - 定点数：dec(M,D) ，decimal(M,D) 保持的精度是最大的。
+          - M和D的含义：D表示小数点后面的位数，M表示最大的位数(整数➕小数)
+          - Decimal(M,D):其中M默认是10，D默认是0；
+          - float 和double 则会根据插入的数值的精度来决定精度。
+        - 浮点数：
+          - Float:默认是4个字节
+          - Double:默认是8个字节
+
+      - 原则：所选择的类型越简单越好，能保存的数值的类型越小越好。
+
+    - 字符型：
+
+      - 较短的文本：char varchar
+
+      - |         | 写法                       | M的意思        | 特点           | 空间的耗费   | 效率 |
+        | ------- | -------------------------- | -------------- | -------------- | ------------ | ---- |
+        | char    | char(M),M可以省掉，默认是1 | 最大的字符数   | 固定长度的字符 | 比较耗费空间 | 高   |
+        | varchar | varchar(M)不可以省掉，     | 最大的字符数啊 | 可变长度的字符 | 比较节省空间 | 低   |
+        |         |                            |                |                |              |      |
+        |         |                            |                |                |              |      |
+
+      - 
+
+      - 
+
+      - 较长的文本：text,blob(较长的二进制数据)
+
+    - 日期型：用于保存日期的值，必须使用单引号引起来。
+
+      - date: 4个字节，只有只有日期，
+      - datetime:8个字节，有日期和时间,只能反映出插入的当地时区
+      - timestamp:4个字节，保存日期和时间和实际的时区有关，更可以反映实际的日期受到mysql和sqlmode的影响很大。
+      - time：只有时间。
+      - year：只有年
+
+- 经典面试题：
+
+  - delete和truncate	区别：
+
+    - truncate:删除后，如果在插入的话，标示列从1开始。
+
+    - delete:删除后，如果在插入的话，标示列从断点出开始。
+
+    - truncate:不可以添加筛选条件，delete不可以添加筛选条件
+
+    - truncate:效率比较高，delete效率比较低
+
+    - Truncate:没有返回值，delete可以返回受影响的行数。
+
+    - Truncate：删除的数据不可以回滚,delete删除的数据可以回滚。
+
+
+
+
+- 常见的约束：
+  - 
+
+
+
