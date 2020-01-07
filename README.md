@@ -1561,15 +1561,16 @@
         authorId int ,#作者编号
         publishDate Datetime #出版日期
        );
+       ```
       ```
-
+    
     - 表的修改：
-
+    
       - 修改列的类型：
-
+    
         ```sql
         alter table book change column publishDate pushDate Datetime;
-        ```
+      ```
 
       - 约束修改列名
 
@@ -1705,7 +1706,371 @@
 
 
 - 常见的约束：
-  - 
+
+  - 含义：一种限制，可以限制表中行或者列的数据，为了保证表中数据的准确和可靠性。
+  - 分类：六大约束
+    - not null 非空约束，用于保证该字段的值不能为空。
+    - Default:默认约束，用于保证该字段的值有默认值。
+    - Primary key：主键，用于保证该字段的值具有唯一性，并且是非空的。
+    - UNIQUE:唯一,用于保证该字段的值具有唯一性，可以为空。
+    - CHECK:检查约束[mysql是不支持的]。在oracle和sqlServer中是支持的
+    - foreign key：外键，用于限制两个表之间的关系，用于保证该字段的值必须来自于主表的关联列的值，再从表中添加外键约束，用于引用主表中某列的值。
+
+  - 添加约束的时机：
+
+    - 创建表的时候
+    - 修改表的时候
+
+  - 约束的分类：
+
+    - 列级约束
+      - 六大约束在语法上都支持，但外键约束没有效果
+    - 表级约束
+      - 除了非空约束，默认，其他的都支持。
+    - 注意：主键和外键会默认生成索引。
+
+  - 创建表的时候添加约束：
+
+    ```sql
+    create  table students(
+       id int primary key ,#主键
+       stuName varchar(20) not null ,#非空约束
+       gender char(1) check (gender = '男' or gender='女'),#检查约束，在Mysql中不起作用
+       seat int unique,# 唯一约束
+      age int default 10,#默认约束
+      majorId int foreign key  refenerces major(id)#外键
+    );
+    
+    
+    create table major(
+      id int primary key ,
+      majorName varchar(10)
+    );
+    
+    ```
+
+  - 添加表级约束：
+
+    - `````sql
+      create table stuInfo(
+        id int ,
+        stuName varchar(20),
+        gender char(1),
+        seat int,
+        age int ,
+        majorId int,
+      
+        constraint pk primary key (id),#主键
+        constraint ck check (gender in('男','女')),#检查约束
+        constraint un unique (seat),#唯一约束
+        constraint fk_stuInfo_major foreign key (majorId) references major(id)#外键约束
+      );
+      `````
+
+  - 通用的写法：
+
+    - ```sql
+      #sql的通用写法，一般是外键写在最下面，因为一个表中可以有多个外键,其他的约束写在列的后面
+      create  table stuInfo(
+        id int primary key ,
+        stuName varchar(20) not null,
+        gender char(1) check(gender = '男' or gender='女'),
+        age int default 10,
+        set int unique ,
+        marjorId int ,
+        constraint fk_stuinfo_major foreign key(marjorId) references major(id) 
+      );
+      ```
+
+  - 主键和唯一的对比：
+
+    - 都可以保证数据唯一性。
+    - 主键不可以为空，唯一可以为空。
+    - 主键在一个表中，至多只有一个，单数唯一的话在一个表中可以有多个。
+    - 都可以组合使用。联合主键或者 联合唯一 ，不推荐使用。
+
+  - 外键的特点：
+
+    - 要求在从表中设外键关系
+    - 从表中的外键列的类型和主表中的关联列的类型要求一致，名称无要求
+    - 主表中的关联列必须是一个key(一般是主键或者唯一键)
+    - 再插入数据时，先插入主表，在插入从表
+    - 删除数据时，先删除从表的数据，在删除主表的数据。
+
+  - 修改表的时候删除约束
+
+    - 删除非空约束
+
+    - ```sql
+      alter table stuInfo modify column stuName varchar(20) null;
+      ```
+
+    - 删除默认约束
+
+    - ````sql
+      alter table stuInfo modify  column age int ;
+      ````
+
+    - 删除主键
+
+    - ```sql
+      alter table stuInfo modify  column id int;
+      alter table stuInfo drop primary key;
+      ```
+
+    - 删除唯一键
+
+    - ```sql
+      alter table stuInfo drop index set;
+      ```
+
+    - 删除外键约束
+
+    - ````sql
+      alter table stuInfo drop foreign key fk_stuinfo_major
+      ````
+
+  - 标示列：
+
+    - 又被称为自增长列，含义可以不用手动的插入值，系统提供默认的序列值。
+
+    - 创建表时 设置标示列
+
+    - ```sql
+      create table stu_info(
+        id int primary key auto_increment,#设置自增长列
+        name varchar(20)
+      );
+      ```
+
+    - 特点：
+
+      - 标示列必须和主键搭配。
+      - 一个表只多有一个标示列(自增长列)
+      - 标示列的类型只能是int类型。
+      - 标示列可以通过set auto_increment_increment  = 3; 设置步长
+
+    - 在修改表的时候设置标示列
+
+      - ```sql
+        alter table stuInfo modify column id int primary key auto_increment;
+        ```
+
+    - 在删除表的时候设置标示列
+
+    - ```sql
+      alter table stu_info modify id int primary key ;
+      ```
+
+- TCL语言(事务控制语言)
+
+  - 事务：事务是由单独的单元的一个或者多个sql语句组成，在这个单元中作为一个不可分割的整体，如果单元中某一条sql语句一旦执行失败或者错误，整个单元将会回滚，所有受到影响的数据将返回事务开始之前的状态，如果单元中的所有的sql语句执行成功，则事物被顺利执行。
+
+  - 储存引擎：
+
+    - 在mysql中中的数据使用不同的技术存储在文件或者(内存)中
+    - 通过show engines :来查看mysql支持的存储引擎
+    - 在mysql中用的最多的存储引擎有：innodb，myisam，memory等等。其中innodb支持事务，二myisam，memeory等不支持事务。
+
+  - 事务的特点(ACID属性):
+
+    - 原子性：指的是事务是不可分割的工作单位，事务中的操作要么成功,要么都发生，要么都不发生。
+
+    - 一致性：事务必须使数据库从一个一致性状态变换到另外一个一致性状态。
+
+    - 隔离性：是指一个事物的执行不能被其他的事务干扰，即一个事务内部的操作及使用的数据对并发的其他事务是隔离的，并发执行的各个事务之间不能相互干扰。
+
+    - 持久性：指的是一个事务一旦被提交，它对数据库中的数据的改变就是永久性的，接下来的其他操作和数据库故障不应该对其有任何影响。
 
 
+  - 事务的创建：
 
+    - 显示事务：
+
+      - 事务具有明显的开启和结束的标记，
+
+      - 前提是：必须先设置自动提交功能为禁用。
+
+      - ````sql
+        #步骤1：开启事务
+        set autocommit  =0;
+        start transaction ; #可选的
+        #步骤2:便携事务中的sql语句(select,insert,update,delete)等等
+        #语句1
+        #语句2
+        #步骤三：
+        #结束事务
+        commit #提交事务
+        rollback  #回滚事务
+        ````
+
+      - 
+
+    - 隐式事务：
+
+      - 事务没有明显的开启和结束的标记。
+      - 比如delete，update ，insert等等语句。
+
+    - 隔离级别：
+
+      - 对于同时运行的多个事务，当这一些事务访问数据库中相同的数据时候，如果没有采取必要的隔离机制，就会导致各种并发问题。
+
+      - 脏读：对于两个事务T1，T2，当T1已经读取啦已经被T2更新但是还没有被提交的字段之后，若T2回滚，T1读取的内容就是临时切无效的。
+
+      - 不可重复读：对于两个事务T1,或者T2，T1读取啦一个字段，然后T2更新啦该字段之后，T1再次读取同一个字段，值是不相同的。
+
+      - 幻读：对于两个事务T1,T2,T1从一个表中读取啦一个字段，然后在T2在该表中插入了一些新的行，之后，如果T1再次读取同一个表，就会多出几行。
+
+      - 数据库事务的隔离级别：数据库系统必须具有隔离并发运行各个事务的能力，是他们 不会相互影响，避免各种并发问题。
+
+      - 一个事务与其他事务隔离的程度称之为隔离级别，数据库规定啦多种食物隔离级别，不同隔离级别对应不同的干扰程度，隔离级别越高，数据的一致性就越好，但是并发型越弱。
+
+      - 数据库4中隔离级别：
+
+      - | 隔离级别                     | 描述                                                         |
+        | ---------------------------- | ------------------------------------------------------------ |
+        | 读未提交（Read Uncommitted） | 允许事务读取没有被其他事务提交的变更，脏读，不可重复读和幻读的问题都会出现 |
+        | 读提交（Read Committed       | 只允许事务读取已经被其他事务提交的变更，可以避免脏读，但不可重复读和幻读还存在。 |
+        | 可重复读（Repeated Read）    | 确实事务可以多次从一个字段中读取相同的值，在这个事务持续期间，禁止其他事务对这个字段进行更新，可以避免脏读和不可重复读，单数幻读的问题仍然存在 |
+        | 串行化（Serializable）       | 确保事务可以从一个表中读取相同的行，在这个事务持续期间，禁止其他事务对该表执行插入，更新和删除等等，所有的并发问题都可以避免，但是性能十分低下。 |
+        |                              |                                                              |
+
+      - oracle：支持2种事务隔离级别 读已提交(Read Committed)和串行化。Oracle默认的事务隔离级别为读已提交。
+
+      - Mysql支持4种事务隔离级别，Mysql默认的事务隔离级别是可重复读
+
+- 视图
+
+
+  - 就是一个虚拟表，和普通的表使用的方法是一样的，是通过表动态生成的数据，mysql5.1版本中出现的，是具有临时性的特点。
+
+  - Mysql从5.1版本开始提供试图功能，一种虚拟存在的表，行和列的数据来自定义视图的查询中使用的表，并且是在使用视图时动态生成的，只保存啦sql逻辑，不保存查询结果。
+
+  - 应用场景：
+
+
+    - 多个地方用到同样的查询结果。
+    - 该查询结果使用sql语句比较复杂。
+
+  - 语法：
+
+
+~~~sql
+- create view 视图名字 as 查询语句。
+
+- ```sql
+  #使用视图
+  create or replace view myv2
+    as
+    select avg(salary) as ag ,e.department_id from employees e group by  e.department_id;
+   #链接视图
+   select * from myv2 m left join job_grades g on m.ag between g.lowest_sal and g.highest_sal;
+  ```
+
+- 视图的好处：
+
+  - 重用sql
+  - 简化复杂的sql操作,不必知道他的查询细节。
+  - 保护数据提高安全性
+
+- 视图的修改
+
+- 语法：
+
+  - ```sql
+    #方式一
+    create or replace 视图名字
+    as 查询语句。
+    #方式二
+    alter view 视图名字 查询语句。
+    
+    ```
+
+- 视图的删除
+
+  - 语法：
+
+    - ```sql
+      #可以同时删除多个视图
+      drop view 视图名字1,视图名字2,视图名字3...
+      
+      ```
+
+- 查询视图结构
+
+  - ```sql
+    #查看视图的结构。
+    desc 视图名字
+    ```
+
+  -
+~~~
+- 一般是不可以对视图进行增删改的操作的。
+
+- 视图的可更新性和视图中查询的定义有关系，以下的类型视图是不可以更新的。
+
+  - 包含以下关键字的sql语句，分组函数，distinct ,group by ,having union或者union all
+
+  - ```sql
+    create or replace view my_v9
+      as
+      select max(salary),department_id from employees group by department_id;
+    ```
+
+  - 常量视图
+
+  - ```sql
+    create or replace view my_v9
+      as
+      select max(salary),department_id from employees group by department_id;
+    ```
+
+  - Select 中包含子查询
+
+  - ```sql
+    create or replace  view my_v11
+      as
+      select (select max(salary) from employees )最高工资;
+    ```
+
+  - join 
+
+    ```sql
+    select e.last_name,d.department_name from employees e left join departments d on e.department_id = d.department_id;
+    
+    ```
+
+  - from 一个不能更新的视图
+
+    ```sql
+    create or replace view my_v13
+      as
+      select * from employees;
+    ```
+
+  - where 子句的子查询引用了from子句中的表。
+
+    - ```sql
+      create or replace view my_v14
+        as
+        select last_name,email ,salary from employees where employee_id in(
+          select manager_id from departments d where d.manager_id is not null);
+      ```
+
+  - Delete 和 truncate的区别：
+
+    - ```sql
+      #delete 在回滚之后数据不被删除
+      set autocommit = 0; 设置手动提交
+      start transaction;  开启事务
+      delete from departments; 执行sql语句
+      rollback ;#回滚
+      
+      #在回滚之后数据依然被删除
+      set autocommit =0;#设置手动提交
+      start transaction ;#开启事务
+      truncate table  departments;#执行sql语句
+      rollback ;	#回滚
+      ```
+
+    - 
